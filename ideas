@@ -1,0 +1,240 @@
+// CONFESSIONS OF A JS HATER
+
+// LETS TALK ABOUT A LANGUAGE THAT DOESNT SUCK
+
+// problem:functions do everything in JS
+
+// Learning french
+
+
+
+// Hacker school forced me to try and write JS without knowing JS, so let's try it, humor me.
+// -why is this cool?
+// functions can take functions as arguments
+// anonymous functions are just like blocks
+// similar to blocks, functions can see outside variables
+
+build add, foreach, map, sum, reduce/inject
+function add(a,b) {
+  return a + b
+}
+
+function forEach(array, action) {
+  for (var i = 0; i < array.length; i++)
+    action(array[i]);
+}
+
+function map(array, func) {
+  var result = [];
+  forEach(array, function (element) {
+    result.push(func(element));
+  });
+  return result;
+}
+
+function reduce(combine, base, array) {
+  forEach(array, function (element) {
+    base = combine(base, element);
+  });
+
+  return base;
+}
+
+function reduce2(combine, base, array) {
+
+  forEach(array, combiner);
+  function combiner(element) {
+    base = combine(base, element);
+  }
+
+  return base;
+}
+
+
+function sum(numbers) {
+  return reduce(add, 0, numbers);
+}
+
+// things to point out
+// - we're passing an anonymous function as an argument to a method (this is very similar to passing a block)
+// - we "yield" to our anonymous function by calling/invoking the method
+// - in reduce how can the anonymous function in the call to each "see" the base variable
+
+// How about objects
+
+
+function School () {
+  this.db = {}
+}
+School.prototype.add = function (student, grade) {
+  if(this.db[grade]) {
+    this.db[grade].push(student);
+  } else {
+    this.db[grade] = [student];
+  }
+}
+  
+School.prototype.grade = function (level) {
+  return this.db[level] ? this.db[level].sort() : [];
+}
+
+var school = new School()
+
+// differences in JS
+// - functions can be defined within functions
+// why? we want to create a way to keep track of state, and share that state with functions who implement behavior.  encapsulate an idea of some work
+
+paragraphs = [{ type: "footnote",
+                content: "When a programming language is created, it is given syntax and semantics."
+                }, 
+              { type: "body",
+                content: "The syntax describes the form of the program, the semantics describe the function."
+              } ]
+
+function extractFootnotes(paragraphs) {
+  var footnotes = [];
+  var currentNote = 0;
+
+  function replaceFootnote(fragment) {
+    if (fragment.type == "footnote") {
+      currentNote++;
+      footnotes.push(fragment);
+      fragment.number = currentNote;
+      return fragment;
+    }
+  }
+
+  map(paragraphs, replaceFootnote)
+
+  return footnotes;
+} 
+extractFootnotes
+
+// steven showed a lot of examples of scope yesterday
+// why is scope so confusing in javascript?
+// In Ruby, the native syntax/constructs of the language impose scope upon us.  We don't really have to think about scope, it works naturally to our advantage.  It's rare variables stick around when we don't want them to.
+
+// In javascript, there's almost no scope by default.  By default variables want to be in the global scope.  By default functions can see variables outside of their lexical scope. We have to think a lot about what can see what, whereas the rules in ruby are simple.
+
+// function scope
+// - function environments
+//  - scope layers
+var aVar = "a"
+function a (pass) {
+     var bVar = "b"
+     function b (pass) {
+          var cVar = "c"
+          function c (pass) {
+               console.log(cVar)
+               console.log(aVar)
+               console.log(bVar)
+               console.log(pass)
+          }
+          c(pass)
+     }
+     b(pass)
+}
+a("passing this down")
+//  NO BLOCK SCOPE
+//  - shadowing
+//  - operator precedence
+
+ var variable = "top-level";
+ function printVariable() {  
+   console.log("inside printVariable, the variable holds '" +        variable + "'.");
+ }
+ function test() {  
+   var variable = "local";  
+   console.log("inside test, the variable holds '" + variable + "'.");  
+   printVariable();
+ }
+ test();
+
+
+
+// context vs scope
+
+// context
+// why is this maddening to a rubyist? context never changes.  
+// methods belong to objects and there's no reason for them ever to disattach themselves.  
+// BUT most of the time things work fine.
+- this works normally for constructor
+- this works normally for method calls
+- calling functions within methods screws you
+LETS NOT USE THIS SYNTAX
+var jane = {
+    name: 'Jane',    
+    friends:['Tarzan','Cheeta'],
+    logHiToFriends: function(){
+        'use strict';
+        var self = this        
+        this.friends.forEach(function(friend){
+            // `this` is undefined here
+            // show this function logging the value of "this"            
+            console.log(this.name+' says hi to '+friend);
+        }, self);
+    }
+}
+jane.logHiToFriends()
+
+- grabbing functions off objects screws you
+
+var person = {
+    name: 'Jane',    
+    logMyName: function(){
+        console.log(this.name)
+    }
+}
+var logMyName = person.logMyName
+logMyName()
+
+// what's going on?
+- call/apply (yehuda sugar)
+
+function hello(thing) {  
+  console.log("Hello " + thing);
+}
+
+// this:
+hello("world") 
+
+// desugars to:
+hello.call(window, "world");
+
+var person = {  name: "Brendan Eich",
+                hello: function(thing) {
+                    console.log(this + " says hello " + thing);
+                }
+              }
+
+// this:
+person.hello("world") 
+
+// desugars to this:
+
+person.hello.call(person, "world");
+
+how to fix?
+var jane = {
+    name: 'Jane',    
+    friends:['Tarzan','Cheeta'],
+    logHiToFriends: function(){
+        'use strict';
+        var that = this   
+        this.friends.forEach(function(friend){
+          
+            console.log(this.name+' says hi to '+friend);
+        }, that);
+    }
+}
+jane.logHiToFriends()
+arguments object, how does that work? 
+Array.prototype.slice
+
+function declaration vs expression
+
+hoisting (functions and variables)
+
+NOT TALKING ABOUT
+clojures
+return functions
